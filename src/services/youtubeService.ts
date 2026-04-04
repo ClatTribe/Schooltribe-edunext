@@ -69,11 +69,11 @@ export async function getVideosForChapter(
     console.warn('[Vidyaa] YouTube API failed:', e);
   }
 
-  // If API failed, use Gemini with verification to filter hallucinated IDs
+  // If API failed, use Gemini — trust its IDs without browser-side oEmbed verification
+  // (oEmbed HEAD checks are unreliable in browsers due to CORS and filter valid videos)
   if (videos.length === 0) {
     try {
-      const geminiVideos = await fetchViaGemini(subject, chapter, board, classLevel);
-      videos = await verifyVideoIds(geminiVideos);
+      videos = await fetchViaGemini(subject, chapter, board, classLevel);
     } catch (e) {
       console.warn('Gemini fallback failed:', e);
     }
@@ -194,38 +194,6 @@ Return JSON:
       description: `${board} Class ${classLevel} ${subject}`,
       thumbnailUrl: `https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`,
     }));
-}
-
-/**
- * Verify YouTube video IDs are real by checking oEmbed endpoint.
- * Filters out hallucinated/invalid Gemini-suggested IDs. Runs in parallel.
- */
-async function verifyVideoIds(videos: YouTubeVideoResult[]): Promise<YouTubeVideoResult[]> {
-  if (videos.length === 0) return videos;
-
-  const checks = videos.map(async (video) => {
-    try {
-      const resp = await fetch(
-        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.videoId}&format=json`,
-        { method: 'HEAD' }
-      );
-      return resp.ok ? video : null;
-    } catch {
-      // Network error — give benefit of doubt
-      return video;
-    }
-  });
-
-  const results = await Promise.all(checks);
-  const verified = results.filter((v): v is YouTubeVideoResult => v !== null);
-
-  if (verified.length < videos.length) {
-    console.warn(
-      `[Vidyaa] Filtered out ${videos.length - verified.length} invalid video IDs`
-    );
-  }
-
-  return verified;
 }
 
 /**
