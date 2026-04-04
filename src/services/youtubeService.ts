@@ -35,8 +35,8 @@ export async function getVideosForChapter(
   board: string = 'CBSE',
   classLevel: number = 10,
 ): Promise<YouTubeVideoResult[]> {
-  // v4: Hindi/English filter + embeddable. Busts old cache with wrong-language videos.
-  const cacheKey = `${board}_${classLevel}_${subject}_${chapterNumber}_v4`;
+  // v5: Broader query, no language filter, dual-query fallback. Busts stale Gemini-hallucinated cache.
+  const cacheKey = `${board}_${classLevel}_${subject}_${chapterNumber}_v5`;
 
   // 1. Memory cache
   const mem = memoryCache.get(cacheKey);
@@ -89,36 +89,46 @@ export async function getVideosForChapter(
 }
 
 /**
- * YouTube Data API v3 search
+ * YouTube Data API v3 search — tries two queries, broader fallback if first returns nothing
  */
 async function fetchFromYouTubeAPI(
   subject: string, chapter: string, board: string, classLevel: number,
 ): Promise<YouTubeVideoResult[]> {
-  // Search specifically for Hindi/English educational content
-  const query = `${board} Class ${classLevel} ${subject} "${chapter}" in Hindi one shot NCERT`;
-  const url = new URL('https://www.googleapis.com/youtube/v3/search');
-  url.searchParams.set('part', 'snippet');
-  url.searchParams.set('q', query);
-  url.searchParams.set('type', 'video');
-  url.searchParams.set('maxResults', '10');
-  url.searchParams.set('relevanceLanguage', 'hi'); // Prefer Hindi content
-  url.searchParams.set('order', 'relevance');
-  url.searchParams.set('videoEmbeddable', 'true');
-  url.searchParams.set('videoSyndicated', 'true');
-  url.searchParams.set('key', YOUTUBE_API_KEY);
+  const queries = [
+    // Primary: specific to board/class
+    `${board} Class ${classLevel} ${chapter} ${subject}`,
+    // Fallback: drop board, add popular channel names
+    `Class ${classLevel} ${chapter} ${subject} Magnet Brains Vedantu`,
+  ];
 
-  const resp = await fetch(url.toString());
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.items?.length) return [];
+  for (const query of queries) {
+    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    url.searchParams.set('part', 'snippet');
+    url.searchParams.set('q', query);
+    url.searchParams.set('type', 'video');
+    url.searchParams.set('maxResults', '8');
+    url.searchParams.set('order', 'relevance');
+    url.searchParams.set('videoEmbeddable', 'true');
+    url.searchParams.set('key', YOUTUBE_API_KEY);
 
-  return data.items.map((item: any) => ({
-    videoId: item.id.videoId,
-    title: item.snippet.title || chapter,
-    channelTitle: item.snippet.channelTitle || '',
-    description: (item.snippet.description || '').slice(0, 120),
-    thumbnailUrl: item.snippet.thumbnails?.medium?.url || `https://img.youtube.com/vi/${item.id.videoId}/mqdefault.jpg`,
-  }));
+    const resp = await fetch(url.toString());
+    if (!resp.ok) throw new Error(`YouTube API HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    if (data.items?.length) {
+      return data.items.map((item: any) => ({
+        videoId: item.id.videoId,
+        title: item.snippet.title || chapter,
+        channelTitle: item.snippet.channelTitle || '',
+        description: (item.snippet.description || '').slice(0, 120),
+        thumbnailUrl:
+          item.snippet.thumbnails?.medium?.url ||
+          `https://img.youtube.com/vi/${item.id.videoId}/mqdefault.jpg`,
+      }));
+    }
+  }
+
+  return [];
 }
 
 /**
