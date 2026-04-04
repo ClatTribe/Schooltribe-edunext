@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, type MouseEvent } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getChapters, SUBJECT_LABELS } from '@/constants';
-import { getVideosForChapter, getEmbedUrl } from '@/services/youtubeService';
+import { getVideosForChapter, getEmbedUrl, getSearchSuggestions, getYouTubeSearchUrl } from '@/services/youtubeService';
 import { atomicXPUpdate } from '@/services/firestoreService';
 import { doc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -278,9 +278,38 @@ export default function VideosPage() {
                       </button>
                     ))
                   ) : (
-                    <div className="py-8 text-center text-gray-500">
-                      <p className="text-sm">No videos found for this chapter yet</p>
-                      <p className="mt-1 text-xs text-gray-400">Try again later — we're building the video library</p>
+                    <div className="space-y-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Search on YouTube →</p>
+                        <a
+                          href={getYouTubeSearchUrl(selectedSubject, ch.name, board, classLevel)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-bold text-orange-500 hover:underline"
+                        >
+                          Open all results ↗
+                        </a>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {getSearchSuggestions(selectedSubject, ch.name, board, classLevel).map((s) => (
+                          <a
+                            key={s.channel}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-orange-300 hover:bg-orange-50 transition-all group"
+                          >
+                            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600 text-lg">▶</div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-gray-800 group-hover:text-orange-600 truncate">{s.channel}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5">Opens YouTube ↗</p>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-gray-400 text-center pt-1">
+                        💡 Add a YouTube API key in Vercel to get videos directly in the app
+                      </p>
                     </div>
                   )}
                 </div>

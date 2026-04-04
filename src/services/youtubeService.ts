@@ -12,7 +12,6 @@
 
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { geminiStructuredModel } from '@/lib/gemini';
 
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY || 'AIzaSyASihqx48z4Gl5fhUT9iS5zm0vx8XJpfM0';
 
@@ -69,15 +68,8 @@ export async function getVideosForChapter(
     console.warn('[Vidyaa] YouTube API failed:', e);
   }
 
-  // If API failed, use Gemini — trust its IDs without browser-side oEmbed verification
-  // (oEmbed HEAD checks are unreliable in browsers due to CORS and filter valid videos)
-  if (videos.length === 0) {
-    try {
-      videos = await fetchViaGemini(subject, chapter, board, classLevel);
-    } catch (e) {
-      console.warn('Gemini fallback failed:', e);
-    }
-  }
+  // No fallback — Gemini hallucinates video IDs that don't exist.
+  // When API key is missing/invalid, return empty so the UI shows YouTube search links.
 
   // 4. Store in Firestore
   if (videos.length > 0) {
@@ -130,75 +122,51 @@ async function fetchFromYouTubeAPI(
 }
 
 /**
- * Gemini-based video finder — returns video IDs from known edu channels.
- * We TRUST these IDs without verification (noembed has CORS issues in browsers).
- */
-async function fetchViaGemini(
-  subject: string, chapter: string, board: string, classLevel: number,
-): Promise<YouTubeVideoResult[]> {
-  const prompt = `Find 4 REAL YouTube videos for Indian students studying ${board} Class ${classLevel} ${subject}, chapter: "${chapter}".
-
-I need videos from these REAL YouTube channels that definitely have this content:
-- Magnet Brains (they have Class 8, 9, 10 full chapter videos)
-- Physics Wallah (PW Foundation for Class 8-10)
-- Vedantu Class 9 & 10 / Vedantu Young Wonders (Class 8)
-- LearnoHub - Class 9 & 10
-- Science and Fun Education
-- Shobhit Nirwan (Class 10 Science/Maths)
-- Dear Sir (Class 9/10)
-
-For EACH video give me:
-1. The REAL YouTube video ID (11 characters, like "dQw4w9WgXcQ")
-2. The exact video title as it appears on YouTube
-3. The channel name
-
-IMPORTANT RULES:
-- Only give IDs you are CONFIDENT are real
-- These channels definitely have chapter-wise videos for ${board} Class ${classLevel}
-- The video ID is the part after "v=" in a YouTube URL
-- If you're not sure about an exact ID, give me the channel name and a very specific title so I can find it
-
-Return JSON:
-{
-  "videos": [
-    {"videoId": "xxxxxxxxxxx", "title": "exact title", "channelName": "channel"}
-  ]
-}`;
-
-  const result = await geminiStructuredModel.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-  });
-
-  const text = result.response.text();
-  let parsed: any;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    const match = text.match(/\{[\s\S]*"videos"[\s\S]*\}/);
-    if (match) {
-      try { parsed = JSON.parse(match[0]); } catch { return []; }
-    } else {
-      return [];
-    }
-  }
-
-  if (!parsed?.videos?.length) return [];
-
-  return parsed.videos
-    .filter((v: any) => v.videoId && v.videoId.length >= 8 && v.videoId.length <= 15)
-    .slice(0, 5)
-    .map((v: any) => ({
-      videoId: v.videoId,
-      title: v.title || `${chapter} — Video Lesson`,
-      channelTitle: v.channelName || 'Education',
-      description: `${board} Class ${classLevel} ${subject}`,
-      thumbnailUrl: `https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`,
-    }));
-}
-
-/**
  * Get YouTube embed URL — always in-app
  */
 export function getEmbedUrl(videoId: string): string {
   return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+}
+
+/**
+ * Build a YouTube search URL for a chapter — used as fallback when API key is not set.
+ * Opens YouTube search results in a new tab.
+ */
+export function getYouTubeSearchUrl(
+  subject: string,
+  chapter: string,
+  board: string,
+  classLevel: number,
+): string {
+  const query = `${board} Class ${classLevel} ${subject} ${chapter} in Hindi`;
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+}
+
+/** Curated search suggestions shown as cards in the fallback UI */
+export interface SearchSuggestion {
+  channel: string;
+  query: string;
+  url: string;
+}
+
+export function getSearchSuggestions(
+  subject: string,
+  chapter: string,
+  board: string,
+  classLevel: number,
+): SearchSuggestion[] {
+  const channels = [
+    { channel: 'Magnet Brains', suffix: 'Magnet Brains' },
+    { channel: 'Physics Wallah', suffix: 'Physics Wallah PW' },
+    { channel: 'Vedantu', suffix: 'Vedantu Class 9 & 10' },
+    { channel: 'Shobhit Nirwan', suffix: 'Shobhit Nirwan' },
+  ];
+  return channels.map(({ channel, suffix }) => {
+    const q = `${board} Class ${classLevel} ${subject} ${chapter} ${suffix}`;
+    return {
+      channel,
+      query: q,
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+    };
+  });
 }
