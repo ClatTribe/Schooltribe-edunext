@@ -13,7 +13,7 @@ const CURRENT_PRODUCT = "schooltribe";
 
 const PRODUCTS = [
   { id: "edunext", label: "EduNext", url: "https://getedunext.com" },
-  { id: "preptribe", label: "PrepTribe", url: "https://jeetribechallenge.getedunext.com" },
+  { id: "preptribe", label: "PrepTribe", url: "https://preptribe.getedunext.com/" },
   { id: "schooltribe", label: "SchoolTribe", url: "https://schooltribe.getedunext.com/" },
 ];
 
