@@ -318,7 +318,7 @@ const Testimonials = () => (
 
 
 
-export default function App() {
+export default function LoginPage() {
   const navigate = useNavigate();
   const { setProfile } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
