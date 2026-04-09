@@ -13,7 +13,7 @@
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY || 'AIzaSyASihqx48z4Gl5fhUT9iS5zm0vx8XJpfM0';
+const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY || 'AIzaSyBz5cwnn61y_7iWvqec0h9jY5R5R1aIRYw';
 
 export interface YouTubeVideoResult {
   videoId: string;
