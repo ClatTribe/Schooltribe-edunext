@@ -65,7 +65,7 @@ const Hero = ({ onLogin, isSigningIn }: SectionProps) => (
         </div>
         
         <p className="text-lg text-gray-400 max-w-xl font-medium">
-          SchoolTribe के साथ har concept clear करें. Score high in School Exams & Boards. Let's study together!
+          SchoolTribe के साथ har concept clear करें. Score high in School Exam & Boards. Let's study together!
         </p>
         
         <div className="flex flex-wrap items-center gap-4">
