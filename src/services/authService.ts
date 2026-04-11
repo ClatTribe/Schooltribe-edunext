@@ -75,7 +75,7 @@ export async function createUserProfile(
     email: data.email,
     board: data.board || 'CBSE',
     class: data.class || 10,
-    subjects: data.subjects,
+    subjects: data.subjects, 
     onboardingComplete: true,
     createdAt: new Date(),
     updatedAt: new Date(),
