@@ -80,7 +80,7 @@ export async function createUserProfile(
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-
+ 
   await setDoc(doc(db, 'users', uid), {
     ...profile,
     createdAt: serverTimestamp(),
