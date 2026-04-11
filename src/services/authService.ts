@@ -72,7 +72,7 @@ export async function createUserProfile(
     role: data.role,
     displayName: data.displayName,
     phone: data.phone,
-    email: data.email,
+    email: data.email, 
     board: data.board || 'CBSE',
     class: data.class || 10,
     subjects: data.subjects, 
