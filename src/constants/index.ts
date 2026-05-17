@@ -11,7 +11,7 @@ export const SCHOOL_LOGO_URL = 'https://www.vspscantt.in/images/logo1.png';
 // Brand ecosystem links
 export const BRAND_LINKS = {
   edunext: 'https://getedunext.com',
-  preptribe: 'https://jeetribechallenge.getedunext.com',
+  preptribe: 'https://preptribe.getedunext.com/login',
   schooltribe: '#', // current app
 } as const;
 
