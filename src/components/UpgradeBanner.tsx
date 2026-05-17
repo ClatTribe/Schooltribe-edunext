@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import { motion } from 'framer-motion';
 import { Crown, ArrowRight } from 'lucide-react';
 import { usePaywall } from '../hooks/usePaywall';
