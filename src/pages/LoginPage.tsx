@@ -60,7 +60,7 @@ const Hero = ({ onLogin, isSigningIn }: SectionProps) => (
             with <AnimatedText items={['Duels', 'Peer Learning', 'AI Tutor', 'Mocks']} className="mx-2" />
           </h1>
           <div className="text-3xl font-bold text-white">
-            Just <span className="text-[#FE9900]">₹99/month</span> में!
+            Just <span className="text-[#FE9900]">₹999</span> में!
           </div>
         </div>
         
@@ -237,8 +237,8 @@ const Pricing = ({ onLogin, isSigningIn }: SectionProps) => (
         </div>
         <div className="p-8 md:p-10">
           <div className="flex justify-center items-baseline gap-2 mb-2">
-            <span className="text-5xl font-extrabold text-white">₹99</span>
-            <span className="text-xl text-gray-400 font-bold">/ month</span>
+            <span className="text-5xl font-extrabold text-white">₹999</span>
+            {/* <span className="text-xl text-gray-400 font-bold">/ month</span> */}
           </div>
           <p className="text-lg font-bold text-white mb-8">8th, 9th, 10th Class</p>
           
