@@ -5,6 +5,7 @@ import { signOut } from '@/services/authService';
 import { APP_NAME, BRAND_LINKS } from '@/constants';
 import { getDocument } from '@/services/firestoreService';
 import type { GamificationProfile } from '@/types';
+import UpgradeBanner from './UpgradeBanner';
 
 /* ── Navigation sections (PrepTribe-style grouped nav) ── */
 interface NavItem { label: string; path: string; icon: string; }
@@ -126,7 +127,7 @@ export default function Layout() {
     if (!user) return;
     getDocument<GamificationProfile>('gamification', user.uid).then((doc) => {
       if (doc) setGamStats({ xp: doc.xp ?? 0, streak: doc.streak ?? 0 });
-    }).catch(() => {});
+    }).catch(() => { });
   }, [user]);
 
   const handleSignOut = async () => {
@@ -139,6 +140,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+      <UpgradeBanner />
       <a href="#main-content" className="skip-to-content">Skip to content</a>
 
       {/* ═══ Top Brand Bar (PrepTribe-style) ═══ */}
@@ -240,11 +242,10 @@ export default function Layout() {
                       <li key={item.path}>
                         <Link
                           to={item.path}
-                          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
-                            isActive
-                              ? 'bg-orange-50 text-orange-600 shadow-sm'
-                              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                          }`}
+                          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 ${isActive
+                            ? 'bg-orange-50 text-orange-600 shadow-sm'
+                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                            }`}
                           aria-current={isActive ? 'page' : undefined}
                         >
                           <NavIcon type={item.icon} className={`h-[18px] w-[18px] ${isActive ? 'text-orange-500' : ''}`} />
@@ -262,9 +263,8 @@ export default function Layout() {
           <div className="mt-auto space-y-2 pt-4 border-t border-gray-100">
             <Link
               to="/profile"
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all ${
-                location.pathname === '/profile' ? 'bg-orange-50 text-orange-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-              }`}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all ${location.pathname === '/profile' ? 'bg-orange-50 text-orange-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                }`}
             >
               <NavIcon type="profile" className="h-[18px] w-[18px]" />
               Profile
@@ -316,9 +316,8 @@ export default function Layout() {
                             <Link
                               to={item.path}
                               onClick={() => setMobileMenuOpen(false)}
-                              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all ${
-                                isActive ? 'bg-orange-50 text-orange-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                              }`}
+                              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all ${isActive ? 'bg-orange-50 text-orange-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                                }`}
                             >
                               <NavIcon type={item.icon} className={`h-[18px] w-[18px] ${isActive ? 'text-orange-500' : ''}`} />
                               {item.label}
@@ -349,9 +348,8 @@ export default function Layout() {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-semibold transition-colors ${
-                    isActive ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-semibold transition-colors ${isActive ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600'
+                    }`}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <NavIcon type={item.icon} className={`h-5 w-5 ${isActive ? 'text-orange-500' : ''}`} />
